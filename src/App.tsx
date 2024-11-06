@@ -1,7 +1,7 @@
 import React from 'react';
 import clsx from 'clsx';
 import { Chess } from 'chess.js'
-
+import { Icon } from '@iconify/react';
 import './App.css';
 
 const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
@@ -37,8 +37,10 @@ function App() {
         <div id='chessBoard' className={clsx('grid grid-cols-8 grid-rows-8', 'border-2 border-black')}>
           {position && position.map((row: any, rowIndex: number) => {
             return row.map((cell: any, cellIndex: number) => {
+              const coordinates = `${files[cellIndex]}${ranks[rowIndex]}`
               return (
-                <div key={`${files[cellIndex]ranks[rowIndex]}`}></div>
+                <div key={coordinates} id={coordinates} className=''></div>
+                // <div key={`${files[cellIndex]ranks[rowIndex]}`}></div>
               )
           })
         })}
