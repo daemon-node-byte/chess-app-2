@@ -7,27 +7,41 @@ import './App.css';
 const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 const ranks = ['8', '7', '6', '5', '4', '3', '2', '1']
 
+const COLORS = {
+  TILE: {
+    LITE: 'bg-gray-300',
+    DARK: 'bg-green-600'
+  },
+  PLAYER: {
+    WHITE: 'text-white',
+    BLACK: 'text-black'
+  }
+}
+
 function App() {
   const [position, setPosition] = React.useState<any[] | null>(null)
-  const [boardHeight, setBoardHeight] = React.useState<number>(0)
+  console.log("🚀 ~ App ~ position:", position)
+
+
   React.useEffect(() => {
     const chess = new Chess()
-    const board = document.getElementById('chessBoard') as HTMLDivElement
 
     if (position === null) {
       setPosition(chess.board())
     }
-    if (board) {
-      const boardWidth = board.getBoundingClientRect().width
-      setBoardHeight(boardWidth)
-    }
   }, [position])
   return (
     <div className='App h-[100vh] w-[100vw] bg-indigo-800 text-gray-50'>
-      <div className='h-full flex justify-center items-center'>
+      <div className={`flex justify-center items-center`}>
 
-        <div id='chessBoard' className={clsx('grid grid-cols-8 grid-rows-8', `w-11/12 md:w-[620px] h-[${boardHeight}]`)}>
-          
+        <div id='chessBoard' className={clsx('grid grid-cols-8 grid-rows-8', 'border-2 border-black')}>
+          {position && position.map((row: any, rowIndex: number) => {
+            return row.map((cell: any, cellIndex: number) => {
+              return (
+                <div key={`${files[cellIndex]ranks[rowIndex]}`}></div>
+              )
+          })
+        })}
         </div>
       </div>
     </div>
