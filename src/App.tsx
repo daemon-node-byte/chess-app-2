@@ -34,7 +34,7 @@ const ChessPiece = ({
       id={`${coordinates}-piece`}
       color={player === "w" ? COLORS.PLAYER.WHITE : COLORS.PLAYER.BLACK}
       icon={getChessPiece(pieceType)}
-      className={clsx("text-5xl", whiteOrBlack(player), selected && "selected-piece", playerClass)}
+      className={clsx("text-[50px]", whiteOrBlack(player), selected && "selected-piece", playerClass, 'drop-shadow-lg')}
       mode="svg"
       data-player={player}
     />
@@ -49,11 +49,15 @@ function App() {
   const [whoIsTurnNext, setWhoIsTurnNext] = React.useState<string>("w");
   const [comment, setComment] = React.useState<string>("");
 
-  const handleSquareClick = (id: string) => {
+  const handleSquareClick = (id: string, occupied: boolean) => {
     setMessage("");
     const selectedColor = document
       .getElementById(id)
       ?.getAttribute("data-player");
+      if (selectedTile && occupied && selectedColor === whoIsTurnNext) {
+      setSelectedTile(id);
+      return;
+      }
     if (selectedColor !== whoIsTurnNext && !selectedTile) {
       setMessage("not your turn");
       return;
@@ -100,19 +104,19 @@ function App() {
     <div className="flex flex-col justify-center items-center bg-indigo-800 w-[100vw] h-[100vh] text-gray-50 App">
       <h2 id="GameMsg">{message}</h2>
       <h3>{comment}</h3>
-      <div className={`flex justify-center items-center h-[100vh]`}>
+      <div className={`flex justify-center items-center flex-col h-[100vh]`}>
         <section id="info">
-          <h1 className="text-3xl">Chess</h1>
-          <p className="text-xl">Next Turn:</p>
+          {/* <h1 className="text-3xl">Chess</h1>
+          <p className="text-xl">Next Turn:</p> */}
           <p
             className={clsx(
               whoIsTurnNext === "w"
                 ? "bg-white text-black"
                 : "bg-black text-white",
-              "transition-colors p-2 rounded"
+              "transition-colors p-2 rounded", 'mb-4'
             )}
           >
-            {whoIsTurnNext === "w" ? "White" : "Black"}
+            {whoIsTurnNext === "w" ? "White " : "Black "} to move
           </p>
         </section>
         <div
@@ -131,13 +135,14 @@ function App() {
               return row.map((cell: CellData | null, cellIndex: number) => {
                 const coordinates = `${files[cellIndex]}${ranks[rowIndex]}`;
                 const tileColor = cellIndex % 2 === 0 ? color.a : color.b;
+                const isOccupied = cell ? true : false;
                 return (
                   <div
                     key={coordinates}
                     id={`${coordinates}`}
-                    onClick={() => handleSquareClick(coordinates)}
+                    onClick={() => handleSquareClick(coordinates, isOccupied)}
                     className={clsx(
-                      "w-16 h-16",
+                      "w-20 h-20",
                       tileColor,
                       "flex justify-center items-center relative",
                       "cursor-pointer",
