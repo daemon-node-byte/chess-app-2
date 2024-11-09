@@ -1,6 +1,6 @@
 import React from "react";
 import clsx from "clsx";
-import { Chess } from "chess.js";
+import { Chess, Move, type Square } from "chess.js";
 import { Icon } from "@iconify/react";
 import { getChessPiece, whiteOrBlack } from "./functions";
 import "./App.css";
@@ -48,9 +48,12 @@ function App() {
   const [message, setMessage] = React.useState<string>("");
   const [whoIsTurnNext, setWhoIsTurnNext] = React.useState<string>("w");
   const [comment, setComment] = React.useState<string>("");
+  const [validMoves, setValidMoves] = React.useState<(Move[] | string)[]>([]);
+
 
   const handleSquareClick = (id: string, occupied: boolean) => {
     setMessage("");
+    setValidMoves([]);
     const selectedColor = document
       .getElementById(id)
       ?.getAttribute("data-player");
@@ -72,6 +75,7 @@ function App() {
           setPosition(game.board());
           setSelectedTile(null);
           setWhoIsTurnNext(game.turn() === "w" ? "w" : "b");
+          setValidMoves([]);
         }
       } catch (error: unknown | any) {
         console.error(error);
@@ -80,8 +84,20 @@ function App() {
       }
     } else {
       setSelectedTile(id);
+      setValidMoves([]);
     }
   };
+
+  const showValidMoves = React.useCallback((id: string) => {
+
+      setValidMoves([]);
+      const move = game?.moves({ square: id as Square, verbose: true })
+      if (move) {
+        const parse = move.map((m) => m.to)
+        setValidMoves((prev) => [...prev, ...parse])
+      }
+
+  }, [game])
 
   React.useEffect(() => {
     const gameComment = game?.getComment()
@@ -93,12 +109,12 @@ function App() {
       setPosition(game.board());
     }
     if (selectedTile !== null) {
-      console.log(selectedTile);
+      showValidMoves(selectedTile)
     }
     if (gameComment) {
       setComment(gameComment);
     }
-  }, [position, game, selectedTile, whoIsTurnNext, comment]);
+  }, [position, game, selectedTile, whoIsTurnNext, comment, showValidMoves]);
 
   return (
     <div className="flex flex-col justify-center items-center bg-indigo-800 w-[100vw] h-[100vh] text-gray-50 App">
@@ -106,8 +122,6 @@ function App() {
       <h3>{comment}</h3>
       <div className={`flex justify-center items-center flex-col h-[100vh]`}>
         <section id="info">
-          {/* <h1 className="text-3xl">Chess</h1>
-          <p className="text-xl">Next Turn:</p> */}
           <p
             className={clsx(
               whoIsTurnNext === "w"
@@ -149,7 +163,8 @@ function App() {
                       "square",
                       "transition-all",
                       "hover:border-4 border-yellow-300",
-                      selectedTile === coordinates ? "bg-yellow-300" : ""
+                      selectedTile === coordinates ? "bg-yellow-300" : "",
+                      validMoves.includes(coordinates) ? "border-2 !border-fuchsia-500" : ""
                     )}
                     data-player={cell ? cell.color : "open"}
                   >
