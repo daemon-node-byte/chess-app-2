@@ -34,7 +34,7 @@ const ChessPiece = ({
       id={`${coordinates}-piece`}
       color={player === "w" ? COLORS.PLAYER.WHITE : COLORS.PLAYER.BLACK}
       icon={getChessPiece(pieceType)}
-      className={clsx("text-4xl md:text-5xl", whiteOrBlack(player), selected && "selected-piece", playerClass, 'drop-shadow-lg')}
+      className={clsx("text-4xl md:text-5xl", whiteOrBlack(player), selected && "selected-piece", playerClass, 'drop-shadow-lg', 'transition-all')}
       mode="svg"
       data-player={player}
     />
@@ -46,9 +46,10 @@ function App() {
   const [game, setGame] = React.useState<Chess | null>(null);
   const [selectedTile, setSelectedTile] = React.useState<string | null>(null);
   const [message, setMessage] = React.useState<string>("");
+  console.log("🚀 ~ App ~ message:", message)
   const [whoIsTurnNext, setWhoIsTurnNext] = React.useState<string>("w");
-  const [comment, setComment] = React.useState<string>("");
   const [validMoves, setValidMoves] = React.useState<(Move[] | string)[]>([]);
+  const [lastMove, setLastMove] = React.useState<{ to: string, from: string}>({ to: '', from: '' });
 
 
   const handleSquareClick = (id: string, occupied: boolean) => {
@@ -76,6 +77,7 @@ function App() {
           setSelectedTile(null);
           setWhoIsTurnNext(game.turn() === "w" ? "w" : "b");
           setValidMoves([]);
+          setLastMove({ to: id, from: selectedTile });
         }
       } catch (error: unknown | any) {
         console.error(error);
@@ -100,7 +102,6 @@ function App() {
   }, [game])
 
   React.useEffect(() => {
-    const gameComment = game?.getComment()
     setWhoIsTurnNext(game?.turn() === "w" ? "w" : "b");
     if (game === null) {
       setGame(new Chess());
@@ -111,15 +112,11 @@ function App() {
     if (selectedTile !== null) {
       showValidMoves(selectedTile)
     }
-    if (gameComment) {
-      setComment(gameComment);
-    }
-  }, [position, game, selectedTile, whoIsTurnNext, comment, showValidMoves]);
+
+  }, [position, game, selectedTile, whoIsTurnNext, showValidMoves]);
 
   return (
     <div className="flex flex-col justify-center items-center bg-indigo-800 w-[100vw] h-[100vh] text-gray-50 App">
-      <h2 id="GameMsg">{message}</h2>
-      <h3>{comment}</h3>
       <div className={`flex justify-center items-center flex-col h-[100vh]`}>
         <section id="info">
           <p
@@ -164,7 +161,8 @@ function App() {
                       "transition-all",
                       "hover:border-4 border-yellow-300",
                       selectedTile === coordinates ? "bg-yellow-300" : "",
-                      validMoves.includes(coordinates) ? "border-2 !border-fuchsia-500" : ""
+                      validMoves.includes(coordinates) ? "border-2 !border-fuchsia-500" : "",
+                      lastMove.to === coordinates || lastMove.from === coordinates ? "bg-blue-300" : ""
                     )}
                     data-player={cell ? cell.color : "open"}
                   >
