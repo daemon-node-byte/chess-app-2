@@ -34,7 +34,7 @@ const ChessPiece = ({
       id={`${coordinates}-piece`}
       color={player === "w" ? COLORS.PLAYER.WHITE : COLORS.PLAYER.BLACK}
       icon={getChessPiece(pieceType)}
-      className={clsx("text-[50px]", whiteOrBlack(player), selected && "selected-piece", playerClass, 'drop-shadow-lg')}
+      className={clsx("text-4xl md:text-5xl", whiteOrBlack(player), selected && "selected-piece", playerClass, 'drop-shadow-lg')}
       mode="svg"
       data-player={player}
     />
@@ -142,7 +142,7 @@ function App() {
                     id={`${coordinates}`}
                     onClick={() => handleSquareClick(coordinates, isOccupied)}
                     className={clsx(
-                      "w-20 h-20",
+                      "w-12 md:w-16 h-12 md:h-16",
                       tileColor,
                       "flex justify-center items-center relative",
                       "cursor-pointer",
