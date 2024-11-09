@@ -14,70 +14,74 @@ interface CellData {
   color: string;
   square: string;
 }
-const isSelfSelected = (selected: 'w' | 'b', turn: 'w' | 'b') => {
-  return selected === turn;
-}
+
 const ChessPiece = ({
   pieceType,
   player,
   coordinates,
-  onClick
-}: {
+  selected,
+}:
+{
   pieceType: string;
   player: string;
   coordinates: string;
-  onClick: (id: string, isGamePiece: boolean) => void;
+  selected: boolean;
 }) => {
-  const pgnMapper = {
-    type: player === 'w' ? pieceType.toUpperCase() : pieceType,
-    square: coordinates,
-  }
+  const playerClass = player === "w" ? "white-player" : "black-player";
 
   return (
-  <Icon
-    id={`${coordinates}`}
-    color={player === 'w' ? COLORS.PLAYER.WHITE : COLORS.PLAYER.BLACK}
-    icon={getChessPiece(pieceType)}
-    className={clsx("text-5xl", whiteOrBlack(player), 'target')}
-    onClick={() => onClick(coordinates, true)}
-    mode='svg'
-    data-player={player}
-  />
-);
-}
-
-const updateSelection = (targetId: string, nodeList: NodeListOf<Element>) => {
-  nodeList.forEach((node: Element) => {
-    node = node as HTMLDivElement
-    if (node.classList.contains('selected')) {
-      node.classList.remove('selected');
-    }
-    if (node.id === targetId) {
-      node.classList.add('selected');
-    }
-  })
-}
+    <Icon
+      id={`${coordinates}-piece`}
+      color={player === "w" ? COLORS.PLAYER.WHITE : COLORS.PLAYER.BLACK}
+      icon={getChessPiece(pieceType)}
+      className={clsx("text-5xl", whiteOrBlack(player), selected && "selected-piece", playerClass)}
+      mode="svg"
+      data-player={player}
+    />
+  );
+};
 
 function App() {
   const [position, setPosition] = React.useState<any[] | null>(null);
   const [game, setGame] = React.useState<Chess | null>(null);
   const [selectedTile, setSelectedTile] = React.useState<string | null>(null);
-  const [whoIsTurnNext, setWhoIsTurnNext] = React.useState<string>('w');
+  const [message, setMessage] = React.useState<string>("");
+  const [whoIsTurnNext, setWhoIsTurnNext] = React.useState<string>("w");
+  const [comment, setComment] = React.useState<string>("");
 
-  const movePiece = (id: string, isGamePiece: boolean) => {
-    const square = document.getElementById(id);
-    const whosSquare = square?.getAttribute('data-player');
-    console.log("🚀 ~ movePiece ~ whosSquare:", whosSquare)
-    const pieces = document.querySelectorAll('.target');
-    if (selectedTile === null && isGamePiece && square?.id !== selectedTile) {
-      updateSelection(id, pieces);
+  const handleSquareClick = (id: string) => {
+    setMessage("");
+    const selectedColor = document
+      .getElementById(id)
+      ?.getAttribute("data-player");
+    if (selectedColor !== whoIsTurnNext && !selectedTile) {
+      setMessage("not your turn");
+      return;
+    }
+    if (selectedTile && game) {
+      try {
+        const move = game.move({
+          from: selectedTile,
+          to: id,
+        });
+        if (move) {
+          setPosition(game.board());
+          setSelectedTile(null);
+          setWhoIsTurnNext(game.turn() === "w" ? "w" : "b");
+        }
+      } catch (error: unknown | any) {
+        console.error(error);
+        setSelectedTile(null);
+        setMessage("invalid move");
+      }
+    } else {
       setSelectedTile(id);
     }
+  };
 
-  }
-  
   React.useEffect(() => {
-    setWhoIsTurnNext(game?.turn() === 'w' ? 'w' : 'b');
+    const gameComment = game?.getComment()
+    setWhoIsTurnNext(game?.turn() === "w" ? "w" : "b");
     if (game === null) {
       setGame(new Chess());
     }
@@ -85,20 +89,31 @@ function App() {
       setPosition(game.board());
     }
     if (selectedTile !== null) {
-
       console.log(selectedTile);
     }
-  }, [position, game, selectedTile, whoIsTurnNext]);
+    if (gameComment) {
+      setComment(gameComment);
+    }
+  }, [position, game, selectedTile, whoIsTurnNext, comment]);
 
   return (
-    <div className="App h-[100vh] w-[100vw] bg-indigo-800 text-gray-50">
-      <div className={`flex justify-center items-center`}>
-        <section id='info'>
-          <h1 className='text-3xl'>Chess</h1>
-          <p className='text-xl'>Next Turn:</p>
-            <p className={clsx(whoIsTurnNext === 'w' ? 'bg-white text-black' : 'bg-black text-white', 'transition-colors p-2 rounded')}>{whoIsTurnNext === 'w' ? 'White' : 'Black'}</p>
-            
-          {/* <p className='text-xl'>FEN: <span>{fen}</span></p> */}
+    <div className="flex flex-col justify-center items-center bg-indigo-800 w-[100vw] h-[100vh] text-gray-50 App">
+      <h2 id="GameMsg">{message}</h2>
+      <h3>{comment}</h3>
+      <div className={`flex justify-center items-center h-[100vh]`}>
+        <section id="info">
+          <h1 className="text-3xl">Chess</h1>
+          <p className="text-xl">Next Turn:</p>
+          <p
+            className={clsx(
+              whoIsTurnNext === "w"
+                ? "bg-white text-black"
+                : "bg-black text-white",
+              "transition-colors p-2 rounded"
+            )}
+          >
+            {whoIsTurnNext === "w" ? "White" : "Black"}
+          </p>
         </section>
         <div
           id="chessBoard"
@@ -119,26 +134,29 @@ function App() {
                 return (
                   <div
                     key={coordinates}
-                    id={!cell ? coordinates : `${cellIndex}-square`}
-                    onClick={() => !cell ? movePiece(coordinates, false) : console.log('occupied')}
+                    id={`${coordinates}`}
+                    onClick={() => handleSquareClick(coordinates)}
                     className={clsx(
-                      "h-16 w-16",
+                      "w-16 h-16",
                       tileColor,
                       "flex justify-center items-center relative",
                       "cursor-pointer",
                       "square",
-                      "transition-all"
+                      "transition-all",
+                      "hover:border-4 border-yellow-300",
+                      selectedTile === coordinates ? "bg-yellow-300" : ""
                     )}
+                    data-player={cell ? cell.color : "open"}
                   >
                     {cell && (
                       <ChessPiece
+                        selected={selectedTile === coordinates}
                         coordinates={coordinates}
-                        onClick={movePiece}
                         pieceType={cell.type}
                         player={cell.color}
                       />
                     )}
-                    <span className="text-xs absolute bottom-0 right-0 text-black">
+                    <span className="right-0 bottom-0 absolute text-black text-xs">
                       {coordinates}
                     </span>
                   </div>

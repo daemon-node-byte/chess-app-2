@@ -10,9 +10,3 @@
   stroke-width: 10px !important;
 }
 
-.selected {
-  stroke: yellow !important;
-  stroke-width: 15px !important;
-  color: yellow !important;
-  /* background-color: yellow !important; */
-}
