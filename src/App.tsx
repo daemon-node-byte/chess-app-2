@@ -158,7 +158,6 @@ function App() {
                       "flex justify-center items-center relative",
                       "cursor-pointer",
                       "square",
-                      "transition-all",
                       "hover:border-4 border-yellow-300",
                       selectedTile === coordinates ? "bg-yellow-300" : "",
                       validMoves.includes(coordinates) ? "border-2 !border-fuchsia-500" : "",
